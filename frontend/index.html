@@ -450,7 +450,7 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
   <div style="display:flex;justify-content:center;padding:0 1rem 1rem">
     <div class="char-grid">
       <div class="char-card" onclick="selectChar(0)" id="cc-0">
-        <img class="char-avatar" src="https://res.cloudinary.com/dub2ubqvc/image/upload/w_256,h_256,c_fill,q_80/Merlin_2_bs8tn1.jpg" alt="Merlin" style="width:3.5rem;height:3.5rem;object-fit:cover;border-radius:50%">
+        <span class="char-avatar">🧙</span>
         <div class="char-name">Merlin Trẻ</div>
         <div class="char-class" style="color:var(--purple-light)">⚡ Pháp Sư</div>
         <div class="char-desc">Trí tuệ vượt trội. Câu hỏi khó không làm khó được!</div>
@@ -459,7 +459,7 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
         </div>
       </div>
       <div class="char-card" onclick="selectChar(1)" id="cc-1">
-        <img class="char-avatar" src="https://res.cloudinary.com/dub2ubqvc/image/upload/w_256,h_256,c_fill,q_80/Aria_pzhkbn.jpg" alt="Aria" style="width:3.5rem;height:3.5rem;object-fit:cover;border-radius:50%">
+        <span class="char-avatar">⚔️</span>
         <div class="char-name">Aria Dũng Cảm</div>
         <div class="char-class" style="color:var(--coral)">🛡️ Chiến Binh</div>
         <div class="char-desc">Mạnh mẽ và kiên cường. HP cao, chịu được nhiều đòn!</div>
@@ -468,7 +468,7 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
         </div>
       </div>
       <div class="char-card" onclick="selectChar(2)" id="cc-2">
-        <img class="char-avatar" src="https://res.cloudinary.com/dub2ubqvc/image/upload/w_256,h_256,c_fill,q_80/Lena_ybvie2.jpg" alt="Lena" style="width:3.5rem;height:3.5rem;object-fit:cover;border-radius:50%">
+        <span class="char-avatar">🏹</span>
         <div class="char-name">Lena Nhanh Nhẹn</div>
         <div class="char-class" style="color:var(--teal-light)">🌿 Xạ Thủ</div>
         <div class="char-desc">Tốc độ như gió. Thường ra đòn trước trong chiến đấu!</div>
@@ -477,7 +477,7 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
         </div>
       </div>
       <div class="char-card" onclick="selectChar(3)" id="cc-3">
-        <img class="char-avatar" src="https://res.cloudinary.com/dub2ubqvc/image/upload/w_256,h_256,c_fill,q_80/Yuki_1_mrxkkc.jpg" alt="Yuki" style="width:3.5rem;height:3.5rem;object-fit:cover;border-radius:50%">
+        <span class="char-avatar">🌸</span>
         <div class="char-name">Yuki Chữa Lành</div>
         <div class="char-class" style="color:var(--pink)">💖 Thầy Thuốc</div>
         <div class="char-desc">Hồi phục HP khi trả lời đúng. Sức bền vô địch!</div>
@@ -926,13 +926,7 @@ function startEvent(){
   const bg=LOC_BG[G.curLoc];
   if(bg){sev.style.backgroundImage=`url('${bg}')`;sev.style.backgroundSize='cover';sev.style.backgroundPosition='center';}
   else{sev.style.backgroundImage='';}
-  const panel=document.getElementById('ev-char-panel');
-  if(G.char&&G.char.img){
-    document.getElementById('ev-char-img').src=G.char.img;
-    document.getElementById('ev-char-name').textContent=G.char.name;
-    document.getElementById('ev-char-cls').textContent=G.char.cls;
-    panel.style.display='flex';
-  } else { panel.style.display='none'; }
+  document.getElementById('ev-char-panel').style.display='none';
   showScreen('s-event');
 }
 
@@ -988,7 +982,7 @@ function renderBattle(ev){
   document.getElementById('ev-content').innerHTML=`
     <div class="battle-field">
       <div class="fighter">
-        ${G.char.img?`<img class="f-avatar" src="${G.char.img}" style="width:3rem;height:3rem;object-fit:cover;border-radius:50%;border:2px solid var(--gold)">`:`<span class="f-avatar">${G.char.icon}</span>`}
+        <span class="f-avatar">${G.char.icon}</span>
         <div class="f-name">${G.char.name}</div>
         <div class="f-hpbar"><div class="f-hpfill" style="width:${ph}%"></div></div>
         <div class="f-hptxt">❤️ ${G.char.hp}/${G.char.maxHp}</div>
