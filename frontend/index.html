@@ -188,40 +188,42 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
    SCREEN: EVENT
 ══════════════════════════════ */
 #s-event{padding:0;position:relative;overflow:hidden}
-#s-event::before{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(5,3,12,.7) 0%,rgba(13,10,26,.35) 60%,rgba(13,10,26,.2) 100%);z-index:0;pointer-events:none}
+#s-event::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(120deg,rgba(30,10,60,.55) 0%,rgba(5,15,40,.3) 50%,rgba(10,5,30,.5) 100%);
+  z-index:0;pointer-events:none}
 .ev-header{
   display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;
-  padding:.65rem 1rem;background:rgba(10,7,25,.75);border-bottom:1px solid var(--border);
+  padding:.65rem 1rem;background:rgba(8,5,20,.7);border-bottom:1px solid var(--border);
   position:relative;z-index:2;backdrop-filter:blur(6px)
 }
 .ev-loc{font-weight:800;color:var(--gold);font-size:.9rem}
-.ev-body{flex:1;position:relative;z-index:1}
+.ev-body{flex:1;position:relative;z-index:1;min-height:0}
 
-/* Nhân vật — đứng dưới góc trái, như đang bước vào */
+/* Nhân vật — lớn, đứng bên trái sát đáy */
 .ev-char-panel{
-  position:absolute;bottom:0;left:1.5rem;
-  display:flex;flex-direction:column;align-items:center;gap:.3rem;z-index:2
+  position:absolute;bottom:0;left:0;
+  display:flex;flex-direction:column;align-items:center;gap:0;z-index:2;
+  pointer-events:none
 }
 .ev-char-img{
-  width:330px;height:330px;object-fit:contain;
-  filter:drop-shadow(0 12px 32px rgba(0,0,0,.85));
+  width:495px;height:495px;object-fit:contain;
+  mix-blend-mode:multiply;
+  filter:drop-shadow(0 0 40px rgba(100,60,255,.5)) drop-shadow(0 16px 32px rgba(0,0,0,.9));
 }
-.ev-char-name{font-size:.75rem;font-weight:800;color:var(--gold);text-shadow:0 2px 8px rgba(0,0,0,.9)}
-.ev-char-cls{font-size:.68rem;color:var(--muted);text-shadow:0 2px 8px rgba(0,0,0,.9);margin-bottom:.5rem}
+.ev-char-name{display:none}
+.ev-char-cls{display:none}
 
-/* Card câu đố — nổi lên giữa-phải như bảng phép thuật */
+/* Card câu đố — trong suốt, kế bên nhân vật bên phải */
 .ev-card{
-  position:absolute;top:50%;right:2rem;transform:translateY(-50%);
-  background:rgba(20,13,45,.88);border:1px solid rgba(124,58,237,.45);
-  border-radius:20px;padding:1.5rem;width:min(480px,55vw);
-  backdrop-filter:blur(12px);
-  box-shadow:0 0 40px rgba(124,58,237,.25),0 8px 32px rgba(0,0,0,.6)
+  position:absolute;top:50%;right:1.5rem;transform:translateY(-50%);
+  background:transparent;border:none;
+  padding:1.25rem;width:min(440px,48vw);
 }
 .ev-icon{font-size:2.5rem;text-align:center;display:block;margin-bottom:.4rem}
-.ev-title{font-family:'Cinzel Decorative',cursive;font-size:.95rem;color:var(--gold);text-align:center;margin-bottom:.3rem}
-.ev-desc{text-align:center;color:var(--muted);font-size:.8rem;line-height:1.5;margin-bottom:.9rem}
-.q-box{background:var(--bg-panel);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.1rem;border-left:4px solid var(--purple)}
-.q-text{font-size:1rem;font-weight:700;line-height:1.55}
+.ev-title{font-family:'Cinzel Decorative',cursive;font-size:1rem;color:var(--gold);text-align:center;margin-bottom:.3rem;text-shadow:0 2px 12px rgba(0,0,0,.9)}
+.ev-desc{text-align:center;color:#ccc;font-size:.8rem;line-height:1.5;margin-bottom:.9rem;text-shadow:0 2px 8px rgba(0,0,0,.9)}
+.q-box{background:rgba(10,5,30,.75);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem;border-left:4px solid var(--purple);backdrop-filter:blur(8px)}
+.q-text{font-size:1rem;font-weight:700;line-height:1.55;text-shadow:0 1px 6px rgba(0,0,0,.8)}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
 .opt{
   padding:.75rem .9rem;border-radius:10px;border:2px solid rgba(255,255,255,.1);
