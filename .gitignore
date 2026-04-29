@@ -1,0 +1,8 @@
+# Thông tin nhạy cảm — KHÔNG đưa lên GitHub
+THONG_TIN_DU_AN.txt
+*.txt
+
+# Environment files
+.env
+.env.*
+!.env.example
