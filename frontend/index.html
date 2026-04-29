@@ -187,17 +187,23 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
 /* ══════════════════════════════
    SCREEN: EVENT
 ══════════════════════════════ */
-#s-event{padding:0}
+#s-event{padding:0;position:relative}
+#s-event::before{content:'';position:absolute;inset:0;background:rgba(13,10,26,.55);z-index:0;pointer-events:none}
 .ev-header{
   display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;
-  padding:.65rem 1rem;background:var(--bg-panel);border-bottom:1px solid var(--border)
+  padding:.65rem 1rem;background:rgba(26,19,48,.85);border-bottom:1px solid var(--border);
+  position:relative;z-index:1;backdrop-filter:blur(6px)
 }
 .ev-loc{font-weight:800;color:var(--gold);font-size:.9rem}
-.ev-body{flex:1;display:flex;align-items:center;justify-content:center;padding:1.25rem}
-.ev-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:1.75rem;max-width:580px;width:100%}
-.ev-icon{font-size:4.5rem;text-align:center;display:block;animation:float 2s ease-in-out infinite;margin-bottom:.75rem}
-.ev-title{font-family:'Cinzel Decorative',cursive;font-size:1.15rem;color:var(--gold);text-align:center;margin-bottom:.4rem}
-.ev-desc{text-align:center;color:var(--muted);font-size:.85rem;line-height:1.6;margin-bottom:1.25rem}
+.ev-body{flex:1;display:flex;align-items:center;justify-content:center;padding:1.25rem;position:relative;z-index:1;gap:1.5rem}
+.ev-char-panel{display:flex;flex-direction:column;align-items:center;gap:.5rem;flex-shrink:0}
+.ev-char-img{width:110px;height:110px;object-fit:cover;border-radius:16px;border:3px solid var(--gold);box-shadow:0 0 24px rgba(245,200,66,.4);animation:float 2.5s ease-in-out infinite}
+.ev-char-name{font-size:.78rem;font-weight:800;color:var(--gold);text-align:center}
+.ev-char-cls{font-size:.7rem;color:var(--muted);text-align:center}
+.ev-card{background:rgba(33,25,64,.82);border:1px solid var(--border);border-radius:20px;padding:1.5rem;max-width:520px;width:100%;backdrop-filter:blur(8px)}
+.ev-icon{font-size:3rem;text-align:center;display:block;animation:float 2s ease-in-out infinite;margin-bottom:.5rem}
+.ev-title{font-family:'Cinzel Decorative',cursive;font-size:1rem;color:var(--gold);text-align:center;margin-bottom:.35rem}
+.ev-desc{text-align:center;color:var(--muted);font-size:.82rem;line-height:1.6;margin-bottom:1rem}
 .q-box{background:var(--bg-panel);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.1rem;border-left:4px solid var(--purple)}
 .q-text{font-size:1rem;font-weight:700;line-height:1.55}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
@@ -523,6 +529,11 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
     <div class="pdots" id="ev-dots"></div>
   </div>
   <div class="ev-body">
+    <div class="ev-char-panel" id="ev-char-panel" style="display:none">
+      <img class="ev-char-img" id="ev-char-img" src="" alt="">
+      <div class="ev-char-name" id="ev-char-name"></div>
+      <div class="ev-char-cls" id="ev-char-cls"></div>
+    </div>
     <div class="ev-card" id="ev-content"></div>
   </div>
 </div>
@@ -898,6 +909,13 @@ function startEvent(){
   const bg=LOC_BG[G.curLoc];
   if(bg){sev.style.backgroundImage=`url('${bg}')`;sev.style.backgroundSize='cover';sev.style.backgroundPosition='center';}
   else{sev.style.backgroundImage='';}
+  const panel=document.getElementById('ev-char-panel');
+  if(G.char&&G.char.img){
+    document.getElementById('ev-char-img').src=G.char.img;
+    document.getElementById('ev-char-name').textContent=G.char.name;
+    document.getElementById('ev-char-cls').textContent=G.char.cls;
+    panel.style.display='flex';
+  } else { panel.style.display='none'; }
   showScreen('s-event');
 }
 
