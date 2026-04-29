@@ -203,7 +203,7 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
   display:flex;flex-direction:column;align-items:center;gap:.3rem;z-index:2
 }
 .ev-char-img{
-  width:330px;height:330px;object-fit:cover;border-radius:16px;
+  width:330px;height:330px;object-fit:contain;
   filter:drop-shadow(0 12px 32px rgba(0,0,0,.85));
 }
 .ev-char-name{font-size:.75rem;font-weight:800;color:var(--gold);text-shadow:0 2px 8px rgba(0,0,0,.9)}
@@ -645,7 +645,7 @@ const API = window.REALM_API || 'https://realm-explorer-backend.onrender.com';
 // STATIC DATA
 // ═══════════════════════════════════════
 const CHARS = [
-  {name:'Merlin Trẻ',cls:'Pháp Sư',icon:'🧙',img:'https://res.cloudinary.com/dub2ubqvc/image/upload/w_330,h_330,c_fill,g_face,z_0.6,q_85/merlin_3_1_sc8fyb.jpg',hp:80,maxHp:80,mp:120,maxMp:120,atk:12,spd:8,bonus:'mp'},
+  {name:'Merlin Trẻ',cls:'Pháp Sư',icon:'🧙',img:'https://res.cloudinary.com/dub2ubqvc/image/upload/e_background_removal,w_330,h_330,c_pad,q_85/merlin_3_1_sc8fyb.png',hp:80,maxHp:80,mp:120,maxMp:120,atk:12,spd:8,bonus:'mp'},
   {name:'Aria Dũng Cảm',cls:'Chiến Binh',icon:'⚔️',img:'https://res.cloudinary.com/dub2ubqvc/image/upload/w_120,h_120,c_fill,q_80/Aria_pzhkbn.jpg',hp:150,maxHp:150,mp:60,maxMp:60,atk:18,spd:6,bonus:'hp'},
   {name:'Lena Nhanh Nhẹn',cls:'Xạ Thủ',icon:'🏹',img:'https://res.cloudinary.com/dub2ubqvc/image/upload/w_120,h_120,c_fill,q_80/Lena_ybvie2.jpg',hp:100,maxHp:100,mp:80,maxMp:80,atk:15,spd:15,bonus:'spd'},
   {name:'Yuki Chữa Lành',cls:'Thầy Thuốc',icon:'🌸',img:'https://res.cloudinary.com/dub2ubqvc/image/upload/w_120,h_120,c_fill,q_80/Yuki_1_mrxkkc.jpg',hp:120,maxHp:120,mp:100,maxMp:100,atk:10,spd:9,bonus:'heal'}
