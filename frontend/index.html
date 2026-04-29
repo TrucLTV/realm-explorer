@@ -187,23 +187,40 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
 /* ══════════════════════════════
    SCREEN: EVENT
 ══════════════════════════════ */
-#s-event{padding:0;position:relative}
-#s-event::before{content:'';position:absolute;inset:0;background:rgba(13,10,26,.55);z-index:0;pointer-events:none}
+#s-event{padding:0;position:relative;overflow:hidden}
+#s-event::before{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(5,3,12,.7) 0%,rgba(13,10,26,.35) 60%,rgba(13,10,26,.2) 100%);z-index:0;pointer-events:none}
 .ev-header{
   display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;
-  padding:.65rem 1rem;background:rgba(26,19,48,.85);border-bottom:1px solid var(--border);
-  position:relative;z-index:1;backdrop-filter:blur(6px)
+  padding:.65rem 1rem;background:rgba(10,7,25,.75);border-bottom:1px solid var(--border);
+  position:relative;z-index:2;backdrop-filter:blur(6px)
 }
 .ev-loc{font-weight:800;color:var(--gold);font-size:.9rem}
-.ev-body{flex:1;display:flex;align-items:center;justify-content:center;padding:1.25rem;position:relative;z-index:1;gap:1.5rem}
-.ev-char-panel{display:flex;flex-direction:column;align-items:center;gap:.5rem;flex-shrink:0}
-.ev-char-img{width:110px;height:110px;object-fit:cover;border-radius:16px;border:3px solid var(--gold);box-shadow:0 0 24px rgba(245,200,66,.4);animation:float 2.5s ease-in-out infinite}
-.ev-char-name{font-size:.78rem;font-weight:800;color:var(--gold);text-align:center}
-.ev-char-cls{font-size:.7rem;color:var(--muted);text-align:center}
-.ev-card{background:rgba(33,25,64,.82);border:1px solid var(--border);border-radius:20px;padding:1.5rem;max-width:520px;width:100%;backdrop-filter:blur(8px)}
-.ev-icon{font-size:3rem;text-align:center;display:block;animation:float 2s ease-in-out infinite;margin-bottom:.5rem}
-.ev-title{font-family:'Cinzel Decorative',cursive;font-size:1rem;color:var(--gold);text-align:center;margin-bottom:.35rem}
-.ev-desc{text-align:center;color:var(--muted);font-size:.82rem;line-height:1.6;margin-bottom:1rem}
+.ev-body{flex:1;position:relative;z-index:1}
+
+/* Nhân vật — đứng dưới góc trái, như đang bước vào */
+.ev-char-panel{
+  position:absolute;bottom:0;left:1.5rem;
+  display:flex;flex-direction:column;align-items:center;gap:.3rem;z-index:2
+}
+.ev-char-img{
+  width:165px;height:165px;object-fit:cover;border-radius:12px;
+  filter:drop-shadow(0 8px 24px rgba(0,0,0,.8));
+  image-rendering:auto
+}
+.ev-char-name{font-size:.75rem;font-weight:800;color:var(--gold);text-shadow:0 2px 8px rgba(0,0,0,.9)}
+.ev-char-cls{font-size:.68rem;color:var(--muted);text-shadow:0 2px 8px rgba(0,0,0,.9);margin-bottom:.5rem}
+
+/* Card câu đố — nổi lên giữa-phải như bảng phép thuật */
+.ev-card{
+  position:absolute;top:50%;right:2rem;transform:translateY(-50%);
+  background:rgba(20,13,45,.88);border:1px solid rgba(124,58,237,.45);
+  border-radius:20px;padding:1.5rem;width:min(480px,55vw);
+  backdrop-filter:blur(12px);
+  box-shadow:0 0 40px rgba(124,58,237,.25),0 8px 32px rgba(0,0,0,.6)
+}
+.ev-icon{font-size:2.5rem;text-align:center;display:block;margin-bottom:.4rem}
+.ev-title{font-family:'Cinzel Decorative',cursive;font-size:.95rem;color:var(--gold);text-align:center;margin-bottom:.3rem}
+.ev-desc{text-align:center;color:var(--muted);font-size:.8rem;line-height:1.5;margin-bottom:.9rem}
 .q-box{background:var(--bg-panel);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.1rem;border-left:4px solid var(--purple)}
 .q-text{font-size:1rem;font-weight:700;line-height:1.55}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
