@@ -618,11 +618,14 @@ const API = window.REALM_API || 'https://realm-explorer-backend.onrender.com';
 // STATIC DATA
 // ═══════════════════════════════════════
 const CHARS = [
-  {name:'Merlin Trẻ',cls:'Pháp Sư',icon:'🧙',hp:80,maxHp:80,mp:120,maxMp:120,atk:12,spd:8,bonus:'mp'},
-  {name:'Aria Dũng Cảm',cls:'Chiến Binh',icon:'⚔️',hp:150,maxHp:150,mp:60,maxMp:60,atk:18,spd:6,bonus:'hp'},
-  {name:'Lena Nhanh Nhẹn',cls:'Xạ Thủ',icon:'🏹',hp:100,maxHp:100,mp:80,maxMp:80,atk:15,spd:15,bonus:'spd'},
-  {name:'Yuki Chữa Lành',cls:'Thầy Thuốc',icon:'🌸',hp:120,maxHp:120,mp:100,maxMp:100,atk:10,spd:9,bonus:'heal'}
+  {name:'Merlin Trẻ',cls:'Pháp Sư',icon:'🧙',img:'https://res.cloudinary.com/dub2ubqvc/image/upload/w_120,h_120,c_fill,q_80/Merlin_2_bs8tn1.jpg',hp:80,maxHp:80,mp:120,maxMp:120,atk:12,spd:8,bonus:'mp'},
+  {name:'Aria Dũng Cảm',cls:'Chiến Binh',icon:'⚔️',img:'https://res.cloudinary.com/dub2ubqvc/image/upload/w_120,h_120,c_fill,q_80/Aria_pzhkbn.jpg',hp:150,maxHp:150,mp:60,maxMp:60,atk:18,spd:6,bonus:'hp'},
+  {name:'Lena Nhanh Nhẹn',cls:'Xạ Thủ',icon:'🏹',img:'https://res.cloudinary.com/dub2ubqvc/image/upload/w_120,h_120,c_fill,q_80/Lena_ybvie2.jpg',hp:100,maxHp:100,mp:80,maxMp:80,atk:15,spd:15,bonus:'spd'},
+  {name:'Yuki Chữa Lành',cls:'Thầy Thuốc',icon:'🌸',img:'https://res.cloudinary.com/dub2ubqvc/image/upload/w_120,h_120,c_fill,q_80/Yuki_u0ippt.jpg',hp:120,maxHp:120,mp:100,maxMp:100,atk:10,spd:9,bonus:'heal'}
 ];
+const LOC_BG = {
+  0:'https://res.cloudinary.com/dub2ubqvc/image/upload/w_1280,h_720,c_fill,q_75/forest_mpjvo0.jpg'
+};
 const LOCS = [
   {id:0,name:'Rừng Bí Ẩn',icon:'🌲',desc:'Khu rừng tối tăm đầy quái vật nhỏ',color:'#22C55E'},
   {id:1,name:'Làng Cổ',icon:'🏘️',desc:'Ngôi làng bị quái vật quấy phá',color:'#F97316'},
@@ -891,6 +894,10 @@ function startEvent(){
   else{badge.textContent='🧩 Câu Đố';badge.className='badge badge-purple';}
   if(ev.type==='battle') renderBattle(ev);
   else renderPuzzle(ev);
+  const sev=document.getElementById('s-event');
+  const bg=LOC_BG[G.curLoc];
+  if(bg){sev.style.backgroundImage=`url('${bg}')`;sev.style.backgroundSize='cover';sev.style.backgroundPosition='center';}
+  else{sev.style.backgroundImage='';}
   showScreen('s-event');
 }
 
@@ -946,7 +953,7 @@ function renderBattle(ev){
   document.getElementById('ev-content').innerHTML=`
     <div class="battle-field">
       <div class="fighter">
-        <span class="f-avatar">${G.char.icon}</span>
+        ${G.char.img?`<img class="f-avatar" src="${G.char.img}" style="width:3rem;height:3rem;object-fit:cover;border-radius:50%;border:2px solid var(--gold)">`:`<span class="f-avatar">${G.char.icon}</span>`}
         <div class="f-name">${G.char.name}</div>
         <div class="f-hpbar"><div class="f-hpfill" style="width:${ph}%"></div></div>
         <div class="f-hptxt">❤️ ${G.char.hp}/${G.char.maxHp}</div>
