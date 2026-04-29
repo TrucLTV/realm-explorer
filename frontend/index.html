@@ -219,6 +219,19 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
 .ev-char-name{font-size:.8rem;font-weight:800;color:var(--gold);text-shadow:0 0 12px rgba(245,200,66,.8)}
 .ev-char-cls{font-size:.7rem;color:var(--purple-light);text-shadow:0 0 8px rgba(167,139,250,.8)}
 
+/* Yêu tinh — bên trái */
+@keyframes spiritFloat{
+  0%,100%{transform:translateY(0) scaleX(-1);}
+  50%{transform:translateY(-12px) scaleX(-1);}
+}
+.ev-spirit-panel{position:relative;display:flex;align-items:flex-end;flex-shrink:0}
+.ev-spirit-img{
+  width:280px;height:280px;object-fit:contain;
+  transform:scaleX(-1);
+  animation:spiritFloat 3s ease-in-out infinite;
+  filter:drop-shadow(0 0 18px rgba(50,200,100,.7)) drop-shadow(0 0 40px rgba(30,150,80,.4));
+}
+
 /* Card câu đố — trong suốt hoàn toàn, chỉ text nổi */
 .ev-card{
   background:transparent;border:none;
@@ -552,12 +565,15 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
     <div class="pdots" id="ev-dots"></div>
   </div>
   <div class="ev-body">
+    <div class="ev-spirit-panel" id="ev-spirit-panel" style="display:none">
+      <img class="ev-spirit-img" id="ev-spirit-img" src="" alt="">
+    </div>
+    <div class="ev-card" id="ev-content"></div>
     <div class="ev-char-panel" id="ev-char-panel" style="display:none">
       <img class="ev-char-img" id="ev-char-img" src="" alt="">
       <div class="ev-char-name" id="ev-char-name"></div>
       <div class="ev-char-cls" id="ev-char-cls"></div>
     </div>
-    <div class="ev-card" id="ev-content"></div>
   </div>
 </div>
 
@@ -659,6 +675,9 @@ const CHARS = [
 ];
 const LOC_BG = {
   0:'https://res.cloudinary.com/dub2ubqvc/image/upload/w_1280,h_720,c_fill,q_75/forest_1_xa4z5g.jpg'
+};
+const LOC_SPIRIT = {
+  0:'https://res.cloudinary.com/dub2ubqvc/image/upload/w_320,h_320,c_pad,q_85/fairy-removebg-preview_em1sws.png'
 };
 const LOCS = [
   {id:0,name:'Rừng Bí Ẩn',icon:'🌲',desc:'Khu rừng tối tăm đầy quái vật nhỏ',color:'#22C55E'},
@@ -932,6 +951,10 @@ function startEvent(){
   const bg=LOC_BG[G.curLoc];
   if(bg){sev.style.backgroundImage=`url('${bg}')`;sev.style.backgroundSize='cover';sev.style.backgroundPosition='center';}
   else{sev.style.backgroundImage='';}
+  const spiritPanel=document.getElementById('ev-spirit-panel');
+  const spiritUrl=LOC_SPIRIT[G.curLoc];
+  if(spiritUrl){document.getElementById('ev-spirit-img').src=spiritUrl;spiritPanel.style.display='flex';}
+  else{spiritPanel.style.display='none';}
   const panel=document.getElementById('ev-char-panel');
   if(G.char&&G.char.img){
     document.getElementById('ev-char-img').src=G.char.img;
