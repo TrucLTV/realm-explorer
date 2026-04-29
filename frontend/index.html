@@ -233,6 +233,45 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
 }
 .ev-char-name{font-size:.8rem;font-weight:800;color:var(--gold);text-shadow:0 0 12px rgba(245,200,66,.8)}
 .ev-char-cls{font-size:.7rem;color:var(--purple-light);text-shadow:0 0 8px rgba(167,139,250,.8)}
+.ev-char-wrapper{position:relative;display:inline-block}
+
+/* Đốm sáng */
+@keyframes sparkPop{
+  0%{opacity:0;transform:scale(0) translate(0,0)}
+  40%{opacity:1;transform:scale(1) translate(var(--tx),var(--ty))}
+  100%{opacity:0;transform:scale(0) translate(var(--tx2),var(--ty2))}
+}
+.spark{
+  position:absolute;border-radius:50%;
+  background:radial-gradient(circle,#fff 0%,rgba(150,220,255,.8) 50%,transparent 100%);
+  pointer-events:none;animation:sparkPop var(--dur,1.4s) ease-out infinite;
+  animation-delay:var(--del,0s);top:var(--top,30%);left:var(--left,25%);
+  width:var(--sz,8px);height:var(--sz,8px);
+}
+.s1{--top:28%;--left:22%;--sz:10px;--dur:1.3s;--del:0s;   --tx:-18px;--ty:-28px;--tx2:-30px;--ty2:-50px}
+.s2{--top:22%;--left:18%;--sz:7px; --dur:1.6s;--del:.25s;  --tx:-8px; --ty:-35px;--tx2:-12px;--ty2:-60px}
+.s3{--top:32%;--left:14%;--sz:12px;--dur:1.1s;--del:.5s;   --tx:-28px;--ty:-18px;--tx2:-50px;--ty2:-28px}
+.s4{--top:18%;--left:26%;--sz:6px; --dur:1.8s;--del:.15s;  --tx:10px; --ty:-30px;--tx2:18px; --ty2:-55px}
+.s5{--top:35%;--left:10%;--sz:9px; --dur:1.4s;--del:.7s;   --tx:-35px;--ty:-10px;--tx2:-60px;--ty2:-15px}
+.s6{--top:15%;--left:20%;--sz:5px; --dur:2s;  --del:.35s;  --tx:-5px; --ty:-40px;--tx2:-8px; --ty2:-70px}
+
+/* Tia sáng dài */
+@keyframes rayShoot{
+  0%{opacity:0;transform:scaleX(0) rotate(var(--ang))}
+  30%{opacity:.9}
+  100%{opacity:0;transform:scaleX(1) rotate(var(--ang))}
+}
+.ray{
+  position:absolute;height:2px;transform-origin:left center;
+  background:linear-gradient(90deg,rgba(180,230,255,.9),transparent);
+  pointer-events:none;border-radius:2px;
+  top:var(--top,28%);left:var(--left,22%);width:var(--w,60px);
+  animation:rayShoot var(--dur,1.5s) ease-out infinite;
+  animation-delay:var(--del,0s);
+}
+.r1{--top:26%;--left:20%;--w:70px;--ang:-45deg;--dur:1.4s;--del:0s}
+.r2{--top:30%;--left:18%;--w:55px;--ang:-70deg;--dur:1.7s;--del:.4s}
+.r3{--top:22%;--left:24%;--w:80px;--ang:-25deg;--dur:1.2s;--del:.8s}
 
 /* Yêu tinh — bên trái */
 @keyframes spiritFloat{
@@ -585,7 +624,18 @@ label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-botto
     </div>
     <div class="ev-card" id="ev-content"></div>
     <div class="ev-char-panel" id="ev-char-panel" style="display:none">
-      <img class="ev-char-img" id="ev-char-img" src="" alt="">
+      <div class="ev-char-wrapper">
+        <img class="ev-char-img" id="ev-char-img" src="" alt="">
+        <span class="spark s1"></span>
+        <span class="spark s2"></span>
+        <span class="spark s3"></span>
+        <span class="spark s4"></span>
+        <span class="spark s5"></span>
+        <span class="spark s6"></span>
+        <span class="ray r1"></span>
+        <span class="ray r2"></span>
+        <span class="ray r3"></span>
+      </div>
       <div class="ev-char-name" id="ev-char-name"></div>
       <div class="ev-char-cls" id="ev-char-cls"></div>
     </div>
