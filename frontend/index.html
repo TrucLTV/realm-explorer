@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Realm Explorer — Người Phiêu Lưu</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:#F5C842;--gold-dark:#C9922A;--gold-light:#FDE68A;
+  --bg:#0D0A1A;--bg-mid:#1A1330;--bg-panel:#211940;--bg-card:#2A2050;
+  --purple:#7C3AED;--purple-light:#A78BFA;
+  --teal:#14B8A6;--teal-light:#5EEAD4;
+  --coral:#F97316;--pink:#EC4899;
+  --green:#22C55E;--red:#EF4444;--blue:#3B82F6;
+  --text:#F0EAD6;--muted:#9CA3AF;
+  --border:rgba(245,200,66,0.2);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.screen{display:none;min-height:100vh;flex-direction:column;position:relative;z-index:1}
+.screen.active{display:flex}
+
+/* Stars */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 15% 20%,rgba(124,58,237,.18) 0,transparent 55%),
+    radial-gradient(ellipse at 85% 80%,rgba(20,184,166,.12) 0,transparent 55%);
+}
+
+/* ── TYPOGRAPHY ── */
+.logo{font-family:'Cinzel Decorative',cursive;font-size:clamp(1.8rem,5vw,3.5rem);color:var(--gold);text-shadow:0 0 40px rgba(245,200,66,.45);line-height:1.2}
+.screen-title{font-family:'Cinzel Decorative',cursive;font-size:clamp(1.1rem,3vw,1.8rem);color:var(--gold);text-align:center}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.7rem 1.6rem;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;border:none;transition:all .2s}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#1A1330;box-shadow:0 4px 18px rgba(245,200,66,.35)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(245,200,66,.55)}
+.btn-gold:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-outline{background:transparent;color:var(--gold);border:2px solid var(--gold)}
+.btn-outline:hover{background:rgba(245,200,66,.1)}
+.btn-ghost{background:rgba(255,255,255,.07);color:var(--text);border:1px solid rgba(255,255,255,.12)}
+.btn-ghost:hover{background:rgba(255,255,255,.12)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-success{background:var(--green);color:#fff}
+
+/* ── CARDS ── */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;padding:1.5rem}
+.panel{background:var(--bg-panel);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:1.25rem}
+
+/* ── INPUTS ── */
+input[type=text],input[type=password]{
+  width:100%;padding:.7rem 1rem;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.07);color:var(--text);font-family:'Nunito',sans-serif;font-size:.95rem;
+  transition:border-color .2s;outline:none
+}
+input:focus{border-color:var(--gold)}
+label.field-label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:.35rem;font-weight:600}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:.18rem .6rem;border-radius:20px;font-size:.72rem;font-weight:700}
+.badge-teal{background:rgba(20,184,166,.2);color:var(--teal-light)}
+.badge-purple{background:rgba(124,58,237,.25);color:var(--purple-light)}
+.badge-gold{background:rgba(245,200,66,.2);color:var(--gold)}
+.badge-red{background:rgba(239,68,68,.2);color:#FCA5A5}
+.badge-green{background:rgba(34,197,94,.2);color:var(--green)}
+
+/* ── NOTIFICATION ── */
+#notif{
+  position:fixed;top:1rem;right:1rem;z-index:9999;
+  background:var(--bg-card);border:1.5px solid var(--gold);border-radius:12px;
+  padding:.6rem 1.1rem;font-weight:700;font-size:.88rem;color:var(--gold);
+  transform:translateX(120%);transition:transform .3s;max-width:260px;
+}
+#notif.show{transform:translateX(0)}
+
+/* ── ANIMATIONS ── */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes pulse-gold{0%,100%{box-shadow:0 0 0 0 rgba(245,200,66,.4)}50%{box-shadow:0 0 0 10px rgba(245,200,66,0)}}
+@keyframes slide-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.float{animation:float 3s ease-in-out infinite}
+.slide-up{animation:slide-up .35s ease}
+.pop{animation:pop .3s ease}
+
+/* ══════════════════════════════
+   SCREEN: MODE SELECT
+══════════════════════════════ */
+#s-mode{align-items:center;justify-content:center;padding:2rem;text-align:center}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;max-width:680px;width:100%;margin:2rem auto}
+@media(max-width:560px){.mode-grid{grid-template-columns:1fr}}
+.mode-card{
+  background:var(--bg-card);border:2px solid transparent;border-radius:20px;
+  padding:2rem 1.5rem;cursor:pointer;transition:all .3s;text-align:center;position:relative;overflow:hidden
+}
+.mode-card:hover{transform:translateY(-4px)}
+.mode-card.teal-mode:hover{border-color:var(--teal);box-shadow:0 0 30px rgba(20,184,166,.2)}
+.mode-card.purple-mode:hover{border-color:var(--purple);box-shadow:0 0 30px rgba(124,58,237,.2)}
+.mode-icon{font-size:3.5rem;display:block;margin-bottom:.75rem}
+.mode-title{font-size:1.25rem;font-weight:800;margin-bottom:.4rem}
+.mode-desc{font-size:.82rem;color:var(--muted);line-height:1.6;margin-bottom:1rem}
+.mode-features{display:flex;flex-direction:column;gap:.3rem;text-align:left}
+.mode-feature{font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:.4rem}
+.mode-feature span:first-child{font-size:.85rem}
+
+/* ══════════════════════════════
+   SCREEN: SOLO SETUP
+══════════════════════════════ */
+#s-solo-setup{align-items:center;justify-content:center;padding:2rem}
+.setup-box{max-width:400px;width:100%}
+
+/* ══════════════════════════════
+   SCREEN: LOGIN
+══════════════════════════════ */
+#s-login{align-items:center;justify-content:center;padding:2rem}
+.login-box{max-width:400px;width:100%}
+.login-box .card{padding:2rem}
+.form-row{margin-bottom:1rem}
+.form-error{color:#FCA5A5;font-size:.82rem;margin-top:.4rem;display:none}
+.form-error.show{display:block}
+
+/* ══════════════════════════════
+   SCREEN: CHARACTER SELECT
+══════════════════════════════ */
+#s-char{padding:1.5rem;align-items:center}
+.char-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;max-width:860px;width:100%}
+.char-card{
+  background:var(--bg-card);border:2px solid rgba(255,255,255,.08);border-radius:16px;
+  padding:1.25rem;text-align:center;cursor:pointer;transition:all .3s
+}
+.char-card:hover{transform:translateY(-3px);border-color:var(--gold)}
+.char-card.selected{border-color:var(--gold);background:rgba(245,200,66,.08)}
+.char-avatar{font-size:3.5rem;display:block;margin-bottom:.5rem}
+.char-name{font-size:1rem;font-weight:800;margin-bottom:.2rem}
+.char-class{font-size:.8rem;margin-bottom:.6rem;font-weight:600}
+.char-desc{font-size:.75rem;color:var(--muted);line-height:1.5;margin-bottom:.75rem}
+.stat-chips{display:flex;gap:.35rem;flex-wrap:wrap;justify-content:center}
+.stat-chip{font-size:.7rem;padding:.15rem .45rem;border-radius:12px;background:rgba(255,255,255,.08)}
+
+/* ══════════════════════════════
+   SCREEN: MAP
+══════════════════════════════ */
+#s-map{padding:0}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.6rem 1rem;background:var(--bg-panel);
+  border-bottom:1px solid var(--border);flex-wrap:wrap;gap:.5rem;position:sticky;top:0;z-index:10
+}
+.player-info{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.p-avatar{font-size:1.8rem}
+.p-name{font-weight:800;font-size:.9rem}
+.p-level{font-size:.72rem;color:var(--gold)}
+.stat-bars{display:flex;gap:.6rem;flex-wrap:wrap}
+.sbar{display:flex;align-items:center;gap:.3rem;font-size:.75rem}
+.sbar-track{width:55px;height:7px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+.sbar-fill{height:100%;border-radius:4px;transition:width .5s}
+.sbar-fill.hp{background:var(--red)}
+.sbar-fill.mp{background:var(--teal)}
+.sbar-fill.xp{background:var(--purple-light)}
+.sbar-val{font-size:.7rem;color:var(--muted);min-width:42px}
+.topbar-right{display:flex;gap:.5rem;align-items:center}
+.gold-display{display:flex;align-items:center;gap:.25rem;color:var(--gold);font-weight:700;font-size:.9rem}
+.online-badge{display:flex;align-items:center;gap:.3rem;font-size:.72rem;padding:.2rem .55rem;border-radius:20px}
+
+.map-body{flex:1;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.map-board{background:var(--bg-panel);border:1px solid var(--border);border-radius:20px;padding:1.75rem;max-width:680px;width:100%;text-align:center}
+.map-title{font-family:'Cinzel Decorative',cursive;font-size:1.2rem;color:var(--gold);margin-bottom:1.5rem}
+.loc-list{display:flex;flex-direction:column;align-items:center;gap:0}
+.loc-row{display:flex;align-items:center;gap:.85rem;width:100%;padding:.3rem 0}
+.loc-dot{
+  width:62px;height:62px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1.8rem;
+  border:3px solid;cursor:pointer;transition:all .3s;position:relative
+}
+.loc-dot.unlocked{border-color:var(--gold)}
+.loc-dot.unlocked:hover{transform:scale(1.1);box-shadow:0 0 20px rgba(245,200,66,.4)}
+.loc-dot.current{border-color:var(--teal);animation:pulse-gold 2s infinite}
+.loc-dot.locked{border-color:rgba(255,255,255,.15);opacity:.35;cursor:not-allowed}
+.loc-dot.done{border-color:var(--green)}
+.loc-conn{width:3px;height:32px;margin-left:30px;background:var(--border);border-radius:2px}
+.loc-conn.done{background:rgba(34,197,94,.4)}
+.loc-info{text-align:left;flex:1}
+.loc-info h3{font-size:.9rem;font-weight:700;margin-bottom:.15rem}
+.loc-info p{font-size:.72rem;color:var(--muted)}
+
+/* ══════════════════════════════
+   SCREEN: EVENT
+══════════════════════════════ */
+#s-event{padding:0}
+.ev-header{
+  display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;
+  padding:.65rem 1rem;background:var(--bg-panel);border-bottom:1px solid var(--border)
+}
+.ev-loc{font-weight:800;color:var(--gold);font-size:.9rem}
+.ev-body{flex:1;display:flex;align-items:center;justify-content:center;padding:1.25rem}
+.ev-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:1.75rem;max-width:580px;width:100%}
+.ev-icon{font-size:4.5rem;text-align:center;display:block;animation:float 2s ease-in-out infinite;margin-bottom:.75rem}
+.ev-title{font-family:'Cinzel Decorative',cursive;font-size:1.15rem;color:var(--gold);text-align:center;margin-bottom:.4rem}
+.ev-desc{text-align:center;color:var(--muted);font-size:.85rem;line-height:1.6;margin-bottom:1.25rem}
+.q-box{background:var(--bg-panel);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.1rem;border-left:4px solid var(--purple)}
+.q-text{font-size:1rem;font-weight:700;line-height:1.55}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+.opt{
+  padding:.75rem .9rem;border-radius:10px;border:2px solid rgba(255,255,255,.1);
+  background:var(--bg-panel);color:var(--text);font-size:.88rem;font-family:'Nunito',sans-serif;
+  font-weight:600;cursor:pointer;transition:all .2s;text-align:left;line-height:1.4
+}
+.opt:hover:not(:disabled){border-color:var(--gold);background:rgba(245,200,66,.07)}
+.opt.correct{border-color:var(--green)!important;background:rgba(34,197,94,.15)!important}
+.opt.wrong{border-color:var(--red)!important;background:rgba(239,68,68,.15)!important}
+.opt:disabled{cursor:not-allowed}
+.feedback{margin-top:.85rem;padding:.9rem 1rem;border-radius:10px;text-align:center;font-weight:700;font-size:.9rem;animation:slide-up .3s ease}
+.fb-ok{background:rgba(34,197,94,.18);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.fb-bad{background:rgba(239,68,68,.18);color:#FCA5A5;border:1px solid rgba(239,68,68,.3)}
+.pdots{display:flex;gap:.4rem;margin-left:auto}
+.pdot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.18);transition:all .3s}
+.pdot.done{background:var(--green)}
+.pdot.active{background:var(--gold);box-shadow:0 0 7px rgba(245,200,66,.6)}
+
+/* Battle */
+.battle-field{display:grid;grid-template-columns:1fr auto 1fr;gap:1.25rem;align-items:center;margin-bottom:1.25rem}
+.fighter{background:var(--bg-panel);border-radius:12px;padding:.85rem;text-align:center}
+.f-avatar{font-size:3rem;display:block;margin-bottom:.35rem}
+.f-name{font-size:.82rem;font-weight:800;margin-bottom:.4rem}
+.f-hpbar{height:9px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden}
+.f-hpfill{height:100%;background:var(--red);border-radius:5px;transition:width .5s}
+.f-hptxt{font-size:.7rem;color:var(--muted);margin-top:.2rem}
+.battle-log{background:var(--bg-panel);border-radius:9px;padding:.6rem .9rem;font-size:.82rem;color:var(--muted);text-align:center;min-height:38px;margin-bottom:.9rem;border-left:3px solid var(--coral)}
+
+/* Rewards */
+.rewards{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin:.85rem 0}
+.reward-chip{display:flex;align-items:center;gap:.3rem;padding:.3rem .75rem;border-radius:20px;font-size:.82rem;font-weight:700;background:rgba(245,200,66,.15);color:var(--gold);border:1px solid rgba(245,200,66,.3)}
+
+/* ══════════════════════════════
+   SCREEN: INVENTORY
+══════════════════════════════ */
+#s-inv{padding:1.5rem;align-items:center}
+.inv-layout{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;max-width:780px;width:100%}
+@media(max-width:580px){.inv-layout{grid-template-columns:1fr}}
+.inv-section-title{font-size:.78rem;font-weight:800;color:var(--gold);letter-spacing:.06em;margin-bottom:.75rem}
+.equip-slot{display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;background:var(--bg-panel);border-radius:8px;margin-bottom:.4rem;border:1px solid rgba(255,255,255,.06)}
+.es-icon{font-size:1.3rem;width:32px;text-align:center}
+.es-label{font-size:.72rem;color:var(--muted)}
+.es-item{font-size:.82rem;font-weight:700;color:var(--gold)}
+.es-empty{font-size:.78rem;color:rgba(255,255,255,.2);font-style:italic}
+.inv-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;border-radius:8px;cursor:pointer;transition:all .2s;border:1px solid transparent}
+.inv-item:hover{background:rgba(245,200,66,.07);border-color:var(--border)}
+.ii-icon{font-size:1.4rem}
+.ii-name{font-size:.85rem;font-weight:700}
+.ii-type{font-size:.7rem;color:var(--muted)}
+.char-display{text-align:center;padding:1rem;background:var(--bg-panel);border-radius:12px;margin-bottom:.9rem}
+.cd-avatar{font-size:4.5rem;transition:all .3s}
+.cd-stats{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-top:.75rem}
+.cd-stat{display:flex;align-items:center;justify-content:space-between;padding:.25rem .5rem;background:rgba(255,255,255,.05);border-radius:6px;font-size:.78rem}
+.cd-stat-val{font-weight:700;color:var(--gold)}
+
+/* ══════════════════════════════
+   SCREEN: LEADERBOARD
+══════════════════════════════ */
+#s-lb{padding:1.5rem;align-items:center}
+.lb-wrap{max-width:680px;width:100%}
+.lb-row{
+  display:grid;grid-template-columns:36px 1fr auto auto auto;
+  gap:.75rem;align-items:center;padding:.7rem 1rem;
+  border-radius:10px;margin-bottom:.4rem;transition:background .2s
+}
+.lb-row:hover{background:rgba(255,255,255,.04)}
+.lb-row.top1{background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2)}
+.lb-row.top2{background:rgba(192,220,151,.07)}
+.lb-row.top3{background:rgba(240,153,123,.07)}
+.lb-rank{font-weight:800;font-size:1rem;text-align:center}
+.lb-name{font-weight:700;font-size:.9rem}
+.lb-class{font-size:.72rem;color:var(--muted)}
+.lb-stat{text-align:right;font-size:.82rem}
+.lb-stat-val{font-weight:700}
+.lb-stat-label{font-size:.68rem;color:var(--muted)}
+
+/* ══════════════════════════════
+   SCREEN: RESULT
+══════════════════════════════ */
+#s-result{align-items:center;justify-content:center;padding:2rem}
+.result-card{background:var(--bg-card);border:2px solid var(--gold);border-radius:22px;padding:2.5rem;max-width:480px;width:100%;text-align:center;box-shadow:0 0 40px rgba(245,200,66,.2)}
+.result-icon{font-size:5rem;margin-bottom:.75rem}
+.result-title{font-family:'Cinzel Decorative',cursive;font-size:1.4rem;color:var(--gold);margin-bottom:.35rem}
+.result-sub{color:var(--muted);margin-bottom:1.5rem;font-size:.88rem}
+.result-stats{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem}
+.result-stat{background:var(--bg-panel);border-radius:12px;padding:.65rem 1rem;text-align:center}
+.rs-val{font-size:1.4rem;font-weight:800;color:var(--gold)}
+.rs-label{font-size:.7rem;color:var(--muted)}
+
+/* ══════════════════════════════
+   ITEM POPUP (overlay)
+══════════════════════════════ */
+.popup-bg{
+  display:none;align-items:center;justify-content:center;padding:1rem;
+  position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500
+}
+.popup-bg.open{display:flex}
+.popup{background:var(--bg-card);border:2px solid var(--gold);border-radius:22px;padding:2rem;max-width:380px;width:100%;text-align:center;animation:pop .3s ease}
+.popup-icon{font-size:4rem;margin-bottom:.6rem}
+.popup-name{font-family:'Cinzel Decorative',cursive;color:var(--gold);font-size:1.1rem;margin-bottom:.4rem}
+.popup-desc{color:var(--muted);font-size:.85rem;line-height:1.5;margin-bottom:.85rem}
+.popup-stats{display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.1rem}
+.popup-btns{display:flex;gap:.65rem;justify-content:center}
+</style>
+</head>
+<body>
+<div id="notif"></div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: MODE SELECT
+══════════════════════════════════════ -->
+<div id="s-mode" class="screen active">
+  <div style="padding-top:3rem;text-align:center">
+    <div class="logo float" style="margin-bottom:.4rem">⚔️ Realm Explorer</div>
+    <p style="color:var(--muted);font-size:.88rem;letter-spacing:.15em;margin-bottom:.5rem">NGƯỜI PHIÊU LƯU · HỌC MÀ CHƠI</p>
+  </div>
+  <div class="mode-grid">
+    <div class="mode-card teal-mode" onclick="chooseSolo()">
+      <span class="mode-icon">🎮</span>
+      <div class="mode-title" style="color:var(--teal-light)">1 Người Chơi</div>
+      <div class="mode-desc">Chơi ngay không cần tài khoản. Tiến độ lưu trên máy tính này.</div>
+      <div class="mode-features">
+        <div class="mode-feature"><span>✅</span> Chơi ngay, không cần đăng nhập</div>
+        <div class="mode-feature"><span>✅</span> Lưu tự động trên trình duyệt</div>
+        <div class="mode-feature"><span>✅</span> Không cần internet</div>
+        <div class="mode-feature"><span>⬜</span> Không có bảng xếp hạng lớp</div>
+      </div>
+    </div>
+    <div class="mode-card purple-mode" onclick="chooseMulti()">
+      <span class="mode-icon">👥</span>
+      <div class="mode-title" style="color:var(--purple-light)">Nhiều Người Chơi</div>
+      <div class="mode-desc">Đăng nhập để lưu điểm và thi đua cùng các bạn trong lớp.</div>
+      <div class="mode-features">
+        <div class="mode-feature"><span>✅</span> Lưu tiến độ trên server</div>
+        <div class="mode-feature"><span>✅</span> Bảng xếp hạng lớp học</div>
+        <div class="mode-feature"><span>✅</span> Giáo viên theo dõi kết quả</div>
+        <div class="mode-feature"><span>⚡</span> Cần tài khoản từ giáo viên</div>
+      </div>
+    </div>
+  </div>
+  <p style="text-align:center;color:var(--muted);font-size:.78rem;padding-bottom:2rem">
+    Realm Explorer · Lớp 3–9 · Phiêu lưu học thuật
+  </p>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: SOLO NAME SETUP
+══════════════════════════════════════ -->
+<div id="s-solo-setup" class="screen">
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:2rem">
+    <div class="setup-box slide-up">
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <div style="font-size:3rem;margin-bottom:.5rem">🎮</div>
+        <div class="screen-title" style="margin-bottom:.3rem">Chế Độ 1 Người</div>
+        <p style="color:var(--muted);font-size:.85rem">Nhập tên để bắt đầu hành trình!</p>
+      </div>
+      <div class="card">
+        <div class="form-row">
+          <label class="field-label">Tên của bạn</label>
+          <input type="text" id="solo-name" placeholder="Ví dụ: Minh Tuấn" maxlength="30" onkeydown="if(event.key==='Enter')startSolo()">
+          <div class="form-error" id="solo-err">Vui lòng nhập tên!</div>
+        </div>
+        <div style="display:flex;gap:.65rem;margin-top:1.25rem">
+          <button class="btn btn-ghost" style="flex:1" onclick="showScreen('s-mode')">← Quay lại</button>
+          <button class="btn btn-gold" style="flex:2" onclick="startSolo()">🚀 Bắt Đầu!</button>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:1rem;font-size:.78rem;color:var(--muted);line-height:1.7">
+        💾 Tiến độ sẽ được lưu tự động vào trình duyệt này.<br>
+        Nếu xoá cache trình duyệt, dữ liệu sẽ mất.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: MULTI LOGIN
+══════════════════════════════════════ -->
+<div id="s-login" class="screen">
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:2rem">
+    <div class="login-box slide-up">
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <div style="font-size:3rem;margin-bottom:.5rem">🔐</div>
+        <div class="screen-title" style="margin-bottom:.3rem">Đăng Nhập</div>
+        <p style="color:var(--muted);font-size:.85rem">Dùng tài khoản do giáo viên cấp</p>
+      </div>
+      <div class="card">
+        <div class="form-row">
+          <label class="field-label">Tên đăng nhập</label>
+          <input type="text" id="login-user" placeholder="username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Mật khẩu</label>
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <div class="form-error" id="login-err"></div>
+        <div style="display:flex;gap:.65rem;margin-top:1.25rem">
+          <button class="btn btn-ghost" style="flex:1" onclick="showScreen('s-mode')">← Quay lại</button>
+          <button class="btn btn-gold" id="login-btn" style="flex:2" onclick="doLogin()">🔑 Đăng Nhập</button>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:1rem;font-size:.78rem;color:var(--muted);line-height:1.7">
+        📋 Chưa có tài khoản? Hỏi giáo viên để được cấp.<br>
+        🔒 Mật khẩu được mã hóa an toàn.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: CHARACTER SELECT
+══════════════════════════════════════ -->
+<div id="s-char" class="screen">
+  <div style="padding:.75rem 1rem;display:flex;align-items:center;gap:1rem">
+    <button class="btn btn-ghost" style="font-size:.82rem;padding:.4rem .85rem" onclick="backFromChar()">← Quay lại</button>
+    <div class="screen-title" style="flex:1">⚔️ Chọn Nhân Vật</div>
+    <div id="char-mode-badge"></div>
+  </div>
+  <div style="text-align:center;margin-bottom:1rem;padding:0 1rem">
+    <p style="color:var(--muted);font-size:.85rem" id="char-sub-text">Mỗi nhân vật có sức mạnh riêng biệt</p>
+  </div>
+  <div style="display:flex;justify-content:center;padding:0 1rem 1rem">
+    <div class="char-grid">
+      <div class="char-card" onclick="selectChar(0)" id="cc-0">
+        <span class="char-avatar">🧙</span>
+        <div class="char-name">Merlin Trẻ</div>
+        <div class="char-class" style="color:var(--purple-light)">⚡ Pháp Sư</div>
+        <div class="char-desc">Trí tuệ vượt trội. Câu hỏi khó không làm khó được!</div>
+        <div class="stat-chips">
+          <span class="stat-chip">🗡️ ATK 12</span><span class="stat-chip">❤️ HP 80</span><span class="stat-chip">💧 MP 120</span>
+        </div>
+      </div>
+      <div class="char-card" onclick="selectChar(1)" id="cc-1">
+        <span class="char-avatar">⚔️</span>
+        <div class="char-name">Aria Dũng Cảm</div>
+        <div class="char-class" style="color:var(--coral)">🛡️ Chiến Binh</div>
+        <div class="char-desc">Mạnh mẽ và kiên cường. HP cao, chịu được nhiều đòn!</div>
+        <div class="stat-chips">
+          <span class="stat-chip">🗡️ ATK 18</span><span class="stat-chip">❤️ HP 150</span><span class="stat-chip">💧 MP 60</span>
+        </div>
+      </div>
+      <div class="char-card" onclick="selectChar(2)" id="cc-2">
+        <span class="char-avatar">🏹</span>
+        <div class="char-name">Lena Nhanh Nhẹn</div>
+        <div class="char-class" style="color:var(--teal-light)">🌿 Xạ Thủ</div>
+        <div class="char-desc">Tốc độ như gió. Thường ra đòn trước trong chiến đấu!</div>
+        <div class="stat-chips">
+          <span class="stat-chip">🗡️ ATK 15</span><span class="stat-chip">❤️ HP 100</span><span class="stat-chip">⚡ SPD+</span>
+        </div>
+      </div>
+      <div class="char-card" onclick="selectChar(3)" id="cc-3">
+        <span class="char-avatar">🌸</span>
+        <div class="char-name">Yuki Chữa Lành</div>
+        <div class="char-class" style="color:var(--pink)">💖 Thầy Thuốc</div>
+        <div class="char-desc">Hồi phục HP khi trả lời đúng. Sức bền vô địch!</div>
+        <div class="stat-chips">
+          <span class="stat-chip">🗡️ ATK 10</span><span class="stat-chip">❤️ HP 120</span><span class="stat-chip">💖 Hồi Máu</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;padding-bottom:2rem">
+    <button class="btn btn-gold" id="start-btn" onclick="confirmChar()" disabled style="opacity:.45;font-size:1rem;padding:.85rem 2.5rem">
+      🚀 Bắt Đầu Phiêu Lưu!
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: MAP
+══════════════════════════════════════ -->
+<div id="s-map" class="screen">
+  <div class="topbar">
+    <div class="player-info">
+      <div class="p-avatar" id="t-avatar">🧙</div>
+      <div>
+        <div class="p-name" id="t-name">Merlin</div>
+        <div class="p-level" id="t-level">Lv.1 Pháp Sư</div>
+      </div>
+      <div class="stat-bars">
+        <div class="sbar">❤️
+          <div class="sbar-track"><div class="sbar-fill hp" id="b-hp"></div></div>
+          <span class="sbar-val" id="v-hp">80/80</span>
+        </div>
+        <div class="sbar">💧
+          <div class="sbar-track"><div class="sbar-fill mp" id="b-mp"></div></div>
+          <span class="sbar-val" id="v-mp">120/120</span>
+        </div>
+        <div class="sbar">⭐
+          <div class="sbar-track"><div class="sbar-fill xp" id="b-xp"></div></div>
+          <span class="sbar-val" id="v-xp">0/100</span>
+        </div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="gold-display">💰<span id="t-gold">0</span></div>
+      <div id="mode-indicator"></div>
+      <button class="btn btn-ghost" style="font-size:.78rem;padding:.35rem .75rem" onclick="showInventory()">🎒</button>
+      <button class="btn btn-ghost" id="lb-btn" style="font-size:.78rem;padding:.35rem .75rem;display:none" onclick="showLeaderboard()">🏆</button>
+      <button class="btn btn-ghost" style="font-size:.78rem;padding:.35rem .75rem" onclick="doLogout()">🚪</button>
+    </div>
+  </div>
+  <div class="map-body">
+    <div class="map-board">
+      <div class="map-title">🗺️ Bản Đồ Phiêu Lưu</div>
+      <div class="loc-list" id="loc-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: EVENT
+══════════════════════════════════════ -->
+<div id="s-event" class="screen">
+  <div class="ev-header">
+    <span id="ev-loc" class="ev-loc">📍</span>
+    <span id="ev-badge" class="badge badge-purple">🧩 Câu Đố</span>
+    <div class="pdots" id="ev-dots"></div>
+  </div>
+  <div class="ev-body">
+    <div class="ev-card" id="ev-content"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: INVENTORY
+══════════════════════════════════════ -->
+<div id="s-inv" class="screen">
+  <div style="padding:.75rem 1rem;display:flex;align-items:center;gap:1rem">
+    <button class="btn btn-ghost" style="font-size:.82rem;padding:.4rem .85rem" onclick="showScreen('s-map')">← Bản Đồ</button>
+    <div class="screen-title" style="flex:1">🎒 Túi Đồ</div>
+  </div>
+  <div style="display:flex;justify-content:center;padding:0 1rem 1.5rem">
+    <div class="inv-layout">
+      <div class="panel">
+        <div class="inv-section-title">👤 NHÂN VẬT</div>
+        <div class="char-display">
+          <div class="cd-avatar" id="inv-avatar">🧙</div>
+          <div style="font-weight:800;margin-top:.4rem" id="inv-name">Merlin</div>
+          <div style="font-size:.78rem;color:var(--gold)" id="inv-class">Lv.1 Pháp Sư</div>
+          <div class="cd-stats" id="inv-stats"></div>
+        </div>
+        <div class="inv-section-title">🛡️ ĐANG MẶC</div>
+        <div id="equip-slots"></div>
+      </div>
+      <div class="panel">
+        <div class="inv-section-title">📦 TÚI ĐỒ (<span id="inv-count">0</span>)</div>
+        <div id="inv-list"></div>
+        <div id="inv-empty" style="text-align:center;color:var(--muted);padding:2rem;font-size:.85rem">
+          Chưa có vật phẩm nào.<br>Chiến đấu để nhận trang bị!
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: LEADERBOARD
+══════════════════════════════════════ -->
+<div id="s-lb" class="screen">
+  <div style="padding:.75rem 1rem;display:flex;align-items:center;gap:1rem">
+    <button class="btn btn-ghost" style="font-size:.82rem;padding:.4rem .85rem" onclick="showScreen('s-map')">← Bản Đồ</button>
+    <div class="screen-title" style="flex:1">🏆 Bảng Xếp Hạng Lớp</div>
+    <button class="btn btn-ghost" style="font-size:.78rem;padding:.35rem .75rem" onclick="loadLeaderboard()">🔄</button>
+  </div>
+  <div style="display:flex;justify-content:center;padding:0 1rem 1.5rem">
+    <div class="lb-wrap">
+      <div class="panel" style="margin-bottom:1rem">
+        <div id="lb-list" style="min-height:120px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN: RESULT
+══════════════════════════════════════ -->
+<div id="s-result" class="screen">
+  <div class="result-card pop">
+    <div class="result-icon" id="res-icon">🏆</div>
+    <div class="result-title" id="res-title">Chiến Thắng!</div>
+    <div class="result-sub" id="res-sub">Bạn đã vượt qua địa điểm này!</div>
+    <div class="result-stats" id="res-stats"></div>
+    <button class="btn btn-gold" style="width:100%;font-size:1rem" onclick="continueAfterResult()">
+      🗺️ Tiếp Tục Hành Trình
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ITEM POPUP
+══════════════════════════════════════ -->
+<div class="popup-bg" id="item-popup">
+  <div class="popup">
+    <div class="popup-icon" id="pp-icon">⚔️</div>
+    <div class="popup-name" id="pp-name">Vật phẩm</div>
+    <div class="popup-desc" id="pp-desc"></div>
+    <div class="popup-stats" id="pp-stats"></div>
+    <div class="popup-btns">
+      <button class="btn btn-gold" onclick="equipFromPopup()">✅ Mặc Vào</button>
+      <button class="btn btn-ghost" onclick="closePopup()">Để Sau</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// CONFIG — đổi URL khi deploy backend
+// ═══════════════════════════════════════
+const API = window.REALM_API || 'http://localhost:3000';
+
+// ═══════════════════════════════════════
+// STATIC DATA
+// ═══════════════════════════════════════
+const CHARS = [
+  {name:'Merlin Trẻ',cls:'Pháp Sư',icon:'🧙',hp:80,maxHp:80,mp:120,maxMp:120,atk:12,spd:8,bonus:'mp'},
+  {name:'Aria Dũng Cảm',cls:'Chiến Binh',icon:'⚔️',hp:150,maxHp:150,mp:60,maxMp:60,atk:18,spd:6,bonus:'hp'},
+  {name:'Lena Nhanh Nhẹn',cls:'Xạ Thủ',icon:'🏹',hp:100,maxHp:100,mp:80,maxMp:80,atk:15,spd:15,bonus:'spd'},
+  {name:'Yuki Chữa Lành',cls:'Thầy Thuốc',icon:'🌸',hp:120,maxHp:120,mp:100,maxMp:100,atk:10,spd:9,bonus:'heal'}
+];
+const LOCS = [
+  {id:0,name:'Rừng Bí Ẩn',icon:'🌲',desc:'Khu rừng tối tăm đầy quái vật nhỏ',color:'#22C55E'},
+  {id:1,name:'Làng Cổ',icon:'🏘️',desc:'Ngôi làng bị quái vật quấy phá',color:'#F97316'},
+  {id:2,name:'Động Pha Lê',icon:'💎',desc:'Hang động chứa kho báu quý giá',color:'#14B8A6'},
+  {id:3,name:'Tháp Ma Thuật',icon:'🗼',desc:'Tháp cao chứa bí mật phép thuật',color:'#A78BFA'},
+  {id:4,name:'Lâu Đài Boss',icon:'🏰',desc:'Đại Boss đang chờ đợi ở đây!',color:'#EF4444'}
+];
+const EVENTS = {
+  loc0:[
+    {type:'puzzle',icon:'🌿',title:'Bí Ẩn Của Rừng Cây',
+      desc:'Một yêu tinh rừng chặn đường bạn. Hãy trả lời câu đố để đi qua!',
+      q:'Trong rừng có 5 con thỏ đang ăn cỏ. Có 3 con thỏ nữa chạy đến. Tổng cộng có bao nhiêu con thỏ?',
+      opts:['7 con','8 con','9 con','6 con'],correct:1,exp:20,gold:15,
+      fb_ok:'🎉 Xuất sắc! Yêu tinh nhường đường cho bạn!',
+      fb_bad:'❌ Sai rồi! 5 + 3 = 8 con thỏ. Cố lên nhé!'
+    },
+    {type:'battle',icon:'🐺',title:'Đấu Với Sói Xám',
+      desc:'Một con sói xám xuất hiện! Trả lời đúng để tấn công nó!',
+      enemy:{name:'Sói Xám',icon:'🐺',hp:40,maxHp:40,atk:8},
+      qs:[
+        {q:'Nếu sói chạy 10km mỗi giờ, sau 3 giờ đi được bao nhiêu km?',
+          opts:['25 km','30 km','35 km','28 km'],correct:1,
+          fb_ok:'⚔️ Tấn công trúng! Sói mất 20 HP!',fb_bad:'😅 Hụt! 10×3=30km. Sói phản đòn!'},
+        {q:'Sói có 4 chân. Có 5 con sói trong bầy. Tổng cộng bao nhiêu chân?',
+          opts:['16 chân','18 chân','20 chân','22 chân'],correct:2,
+          fb_ok:'💥 Đòn kết liễu! Sói bị đánh bại!',fb_bad:'😬 Hụt! 4×5=20 chân. Sói giật lại!'}
+      ],exp:35,gold:25,
+      item:{name:'Móng Sói',icon:'🔱',type:'Vũ Khí',slot:'weapon',desc:'Móng vuốt của sói xám. Tăng sức tấn công.',stats:{atk:5}}
+    },
+    {type:'treasure',icon:'💰',title:'Kho Báu Của Rừng',
+      desc:'Bạn tìm thấy một cái rương bí ẩn! Trả lời câu hỏi khó để mở khóa!',
+      q:'Cây cao 24m, mỗi năm cao thêm 3m. Bao nhiêu năm trước cây cao 15m?',
+      opts:['2 năm','3 năm','4 năm','5 năm'],correct:1,exp:50,gold:40,
+      fb_ok:'🎊 Tuyệt vời! Bạn mở được rương kho báu!',
+      fb_bad:'💭 Hãy nghĩ lại: (24-15)÷3 = 3 năm trước.',
+      item:{name:'Áo Giáp Lá',icon:'🍃',type:'Giáp',slot:'armor',desc:'Áo giáp kết từ lá rừng ma thuật. Giảm sát thương.',stats:{hp:20}}
+    }
+  ]
+};
+
+// ═══════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════
+let MODE = null; // 'solo' | 'multi'
+let TOKEN = null;
+let USER = null;
+let G = null;
+let selectedCharIdx = null;
+let pendingItem = null;
+
+function defaultG(charIdx){
+  const c = {...CHARS[charIdx]};
+  return {
+    charIdx, char:c, level:1, exp:0, expNext:100, gold:0,
+    inventory:[], equipped:{weapon:null,armor:null,accessory:null},
+    locsDone:[], curLoc:0, evIdx:0, curEvs:[],
+    battle:null, correct:0, wrong:0, displayName:''
+  };
+}
+
+// ═══════════════════════════════════════
+// SCREEN NAV
+// ═══════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function notify(msg,dur=2600){
+  const el=document.getElementById('notif');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),dur);
+}
+
+// ═══════════════════════════════════════
+// MODE SELECT
+// ═══════════════════════════════════════
+function chooseSolo(){ MODE='solo'; showScreen('s-solo-setup'); }
+function chooseMulti(){ MODE='multi'; showScreen('s-login'); }
+
+// ═══════════════════════════════════════
+// SOLO SETUP
+// ═══════════════════════════════════════
+function startSolo(){
+  const name = document.getElementById('solo-name').value.trim();
+  const err = document.getElementById('solo-err');
+  if(!name){ err.classList.add('show'); return; }
+  err.classList.remove('show');
+  USER = {display_name: name, role:'student'};
+  // Try to load saved progress
+  const saved = localStorage.getItem('realm_solo_save');
+  if(saved){
+    try{
+      const s = JSON.parse(saved);
+      if(s.displayName === name && confirm(`Tiếp tục từ lần trước không?\nLv.${s.level} — ${LOCS[s.curLoc]?.name || 'Đã hoàn thành'}`)){
+        G = s;
+        G.char = {...CHARS[G.charIdx],...G.charData};
+        goToMap(); return;
+      }
+    } catch(e){}
+  }
+  goToCharSelect();
+}
+
+// ═══════════════════════════════════════
+// MULTI LOGIN
+// ═══════════════════════════════════════
+async function doLogin(){
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-err');
+  const btn = document.getElementById('login-btn');
+  err.classList.remove('show');
+  if(!username||!password){ showErr(err,'Nhập đầy đủ username và mật khẩu'); return; }
+  btn.disabled=true; btn.textContent='⏳ Đang đăng nhập...';
+  try{
+    const res = await fetch(`${API}/api/auth/login`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username,password})
+    });
+    const data = await res.json();
+    if(!res.ok){ showErr(err, data.error||'Đăng nhập thất bại'); return; }
+    TOKEN = data.token;
+    USER = data.user;
+    // Load game save
+    const saveRes = await apiFetch('/api/game/save');
+    const saveData = await saveRes.json();
+    if(saveData.save && saveData.save.char_index !== undefined){
+      G = serverSaveToG(saveData.save);
+      goToMap();
+    } else {
+      goToCharSelect();
+    }
+  } catch(e){
+    showErr(err,'Không kết nối được server. Hãy thử chế độ 1 người chơi.');
+  } finally{
+    btn.disabled=false; btn.textContent='🔑 Đăng Nhập';
+  }
+}
+function showErr(el,msg){ el.textContent=msg; el.classList.add('show'); }
+
+function serverSaveToG(s){
+  const g = defaultG(s.char_index);
+  g.char.hp=s.char_hp; g.char.maxHp=s.char_max_hp;
+  g.char.mp=s.char_mp; g.char.maxMp=s.char_max_mp;
+  g.char.atk=s.char_atk;
+  g.level=s.level; g.exp=s.exp; g.expNext=s.exp_to_next; g.gold=s.gold;
+  g.locsDone=s.locations_done||[]; g.curLoc=s.current_loc;
+  g.equipped=s.equipped||{weapon:null,armor:null,accessory:null};
+  g.inventory=s.inventory||[];
+  g.displayName=USER.display_name;
+  return g;
+}
+
+async function apiFetch(path,opts={}){
+  return fetch(API+path,{
+    ...opts,
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN,...(opts.headers||{})}
+  });
+}
+
+// ═══════════════════════════════════════
+// CHARACTER SELECT
+// ═══════════════════════════════════════
+function goToCharSelect(){
+  selectedCharIdx=null;
+  document.querySelectorAll('[id^=cc-]').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('start-btn').disabled=true;
+  document.getElementById('start-btn').style.opacity='.45';
+  document.getElementById('char-mode-badge').innerHTML =
+    MODE==='solo' ? '<span class="badge badge-teal">🎮 Solo</span>' : '<span class="badge badge-purple">👥 Multi</span>';
+  document.getElementById('char-sub-text').textContent =
+    MODE==='multi'&&G ? `Chào lại ${USER.display_name}! Chọn nhân vật mới.` : 'Mỗi nhân vật có sức mạnh riêng biệt';
+  showScreen('s-char');
+}
+function backFromChar(){
+  if(MODE==='solo') showScreen('s-solo-setup');
+  else showScreen('s-login');
+}
+function selectChar(idx){
+  selectedCharIdx=idx;
+  document.querySelectorAll('[id^=cc-]').forEach((el,i)=>el.classList.toggle('selected',i===idx));
+  const btn=document.getElementById('start-btn');
+  btn.disabled=false; btn.style.opacity='1';
+}
+function confirmChar(){
+  if(selectedCharIdx===null) return;
+  G = defaultG(selectedCharIdx);
+  G.displayName = USER?.display_name || 'Người Chơi';
+  autoSave();
+  goToMap();
+}
+
+// ═══════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════
+function goToMap(){
+  updateTopbar();
+  renderMap();
+  showScreen('s-map');
+  document.getElementById('lb-btn').style.display = MODE==='multi' ? 'inline-flex' : 'none';
+  document.getElementById('mode-indicator').innerHTML =
+    MODE==='multi'
+      ? `<span class="badge badge-purple">☁️ ${USER.display_name}</span>`
+      : `<span class="badge badge-teal">🎮 Solo</span>`;
+}
+
+function renderMap(){
+  const list=document.getElementById('loc-list');
+  list.innerHTML='';
+  LOCS.forEach((loc,i)=>{
+    const done=G.locsDone.includes(i);
+    const locked=i>G.curLoc && !done;
+    const current=i===G.curLoc && !done;
+    let dotCls = locked?'locked': done?'done': current?'current':'unlocked';
+    const row=document.createElement('div'); row.className='loc-row';
+    row.innerHTML=`
+      <div class="loc-dot ${dotCls}" style="background:${done?'rgba(34,197,94,.12)':'rgba(0,0,0,.2)'};border-color:${done?'#22C55E':locked?'rgba(255,255,255,.15)':current?'#14B8A6':'#F5C842'}"
+        onclick="${!locked?`enterLoc(${i})`:''}">
+        ${done?'✅':loc.icon}
+      </div>
+      <div class="loc-info">
+        <h3 style="color:${locked?'rgba(255,255,255,.3)':loc.color}">${loc.name}</h3>
+        <p>${loc.desc}</p>
+        ${done?`<span class="badge badge-green">✅ Hoàn Thành</span>`:
+          current?`<span class="badge badge-teal">⚡ Đang Mở</span>`:
+          locked?`<span class="badge" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.3)">🔒 Chưa Mở</span>`:
+          `<span class="badge badge-gold">✨ Khám Phá</span>`}
+      </div>`;
+    list.appendChild(row);
+    if(i<LOCS.length-1){
+      const conn=document.createElement('div');
+      conn.className='loc-conn'+(done?' done':'');
+      list.appendChild(conn);
+    }
+  });
+}
+
+function enterLoc(idx){
+  if(G.locsDone.includes(idx)){ notify('✅ Đã hoàn thành!'); return; }
+  if(idx>G.curLoc){ notify('🔒 Chưa mở khóa!'); return; }
+  const evKey='loc'+idx;
+  const evs=EVENTS[evKey];
+  if(!evs){ notify('🚧 Đang xây dựng, sắp có!'); return; }
+  G.curLoc=idx; G.evIdx=0; G.curEvs=evs;
+  G.correct=0; G.wrong=0;
+  startEvent();
+}
+
+// ═══════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════
+function startEvent(){
+  if(G.evIdx>=G.curEvs.length){ finishLoc(); return; }
+  const ev=G.curEvs[G.evIdx];
+  const loc=LOCS[G.curLoc];
+  document.getElementById('ev-loc').textContent='📍 '+loc.name;
+  // dots
+  document.getElementById('ev-dots').innerHTML=G.curEvs.map((_,i)=>{
+    const c=i<G.evIdx?'done':i===G.evIdx?'active':'';
+    return `<div class="pdot ${c}"></div>`;
+  }).join('');
+  // badge
+  const badge=document.getElementById('ev-badge');
+  if(ev.type==='battle'){badge.textContent='⚔️ Chiến Đấu';badge.className='badge badge-red';}
+  else if(ev.type==='treasure'){badge.textContent='💎 Kho Báu';badge.className='badge badge-gold';}
+  else{badge.textContent='🧩 Câu Đố';badge.className='badge badge-purple';}
+  if(ev.type==='battle') renderBattle(ev);
+  else renderPuzzle(ev);
+  showScreen('s-event');
+}
+
+function renderPuzzle(ev){
+  const el=document.getElementById('ev-content');
+  el.innerHTML=`
+    <span class="ev-icon">${ev.icon}</span>
+    <div class="ev-title">${ev.title}</div>
+    <div class="ev-desc">${ev.desc}</div>
+    <div class="q-box"><div class="q-text">❓ ${ev.q}</div></div>
+    <div class="opts" id="opts"></div>
+    <div id="fb" style="display:none" class="feedback"></div>
+    <div id="nxt" style="text-align:center;margin-top:.9rem;display:none">
+      <button class="btn btn-gold" onclick="nextEv()">Tiếp Theo →</button>
+    </div>`;
+  ev.opts.forEach((o,i)=>{
+    const b=document.createElement('button'); b.className='opt';
+    b.textContent=['A','B','C','D'][i]+'. '+o;
+    b.onclick=()=>answerPuzzle(ev,i); document.getElementById('opts').appendChild(b);
+  });
+}
+
+function answerPuzzle(ev,chosen){
+  const ok=chosen===ev.correct;
+  document.querySelectorAll('.opt').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===ev.correct) b.classList.add('correct');
+    else if(i===chosen&&!ok) b.classList.add('wrong');
+  });
+  const fb=document.getElementById('fb'); fb.style.display='block';
+  if(ok){
+    fb.className='feedback fb-ok'; fb.innerHTML=ev.fb_ok;
+    G.exp+=ev.exp||20; G.gold+=ev.gold||10; G.correct++;
+    if(G.char.bonus==='heal') G.char.hp=Math.min(G.char.hp+10,G.char.maxHp);
+    checkLevelUp(); updateTopbar();
+    if(ev.item){ G.inventory.push({...ev.item}); setTimeout(()=>showPopup(ev.item),1400); }
+  } else {
+    fb.className='feedback fb-bad'; fb.innerHTML=ev.fb_bad;
+    G.char.hp=Math.max(0,G.char.hp-10); G.wrong++; updateTopbar();
+  }
+  document.getElementById('nxt').style.display='block';
+  autoSave();
+}
+
+function nextEv(){ G.evIdx++; startEvent(); }
+
+// BATTLE
+function renderBattle(ev){
+  if(!G.battle) G.battle={enemy:{...ev.enemy},qIdx:0,ev};
+  const bs=G.battle; const q=bs.ev.qs[bs.qIdx];
+  const ph=Math.max(0,(G.char.hp/G.char.maxHp)*100);
+  const eh=Math.max(0,(bs.enemy.hp/bs.enemy.maxHp)*100);
+  document.getElementById('ev-content').innerHTML=`
+    <div class="battle-field">
+      <div class="fighter">
+        <span class="f-avatar">${G.char.icon}</span>
+        <div class="f-name">${G.char.name}</div>
+        <div class="f-hpbar"><div class="f-hpfill" style="width:${ph}%"></div></div>
+        <div class="f-hptxt">❤️ ${G.char.hp}/${G.char.maxHp}</div>
+      </div>
+      <div style="font-family:'Cinzel Decorative',cursive;font-size:1.3rem;color:var(--gold)">VS</div>
+      <div class="fighter">
+        <span class="f-avatar">${bs.enemy.icon}</span>
+        <div class="f-name">${bs.enemy.name}</div>
+        <div class="f-hpbar"><div class="f-hpfill" style="width:${eh}%"></div></div>
+        <div class="f-hptxt">❤️ ${bs.enemy.hp}/${bs.enemy.maxHp}</div>
+      </div>
+    </div>
+    <div class="battle-log" id="blog">⚔️ Câu ${bs.qIdx+1}/${bs.ev.qs.length} — Trả lời đúng để tấn công!</div>
+    <div class="q-box"><div class="q-text">❓ ${q.q}</div></div>
+    <div class="opts" id="opts"></div>
+    <div id="fb" style="display:none" class="feedback"></div>
+    <div id="nxt" style="text-align:center;margin-top:.9rem;display:none">
+      <button class="btn btn-gold" id="nxt-btn" onclick="battleNext()">Tiếp Theo →</button>
+    </div>`;
+  q.opts.forEach((o,i)=>{
+    const b=document.createElement('button'); b.className='opt';
+    b.textContent=['A','B','C','D'][i]+'. '+o;
+    b.onclick=()=>answerBattle(q,i); document.getElementById('opts').appendChild(b);
+  });
+}
+
+function answerBattle(q,chosen){
+  const ok=chosen===q.correct;
+  const bs=G.battle;
+  document.querySelectorAll('.opt').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===q.correct) b.classList.add('correct');
+    else if(i===chosen&&!ok) b.classList.add('wrong');
+  });
+  const fb=document.getElementById('fb'); fb.style.display='block';
+  const log=document.getElementById('blog');
+  if(ok){
+    fb.className='feedback fb-ok'; fb.innerHTML=q.fb_ok;
+    const dmg=G.char.atk+(G.equipped.weapon?.stats?.atk||0);
+    bs.enemy.hp=Math.max(0,bs.enemy.hp-dmg);
+    G.correct++; log.textContent=`💥 ${G.char.name} tấn công! -${dmg} HP`;
+  } else {
+    fb.className='feedback fb-bad'; fb.innerHTML=q.fb_bad;
+    G.char.hp=Math.max(0,G.char.hp-bs.enemy.atk);
+    G.wrong++; log.textContent=`😤 ${bs.enemy.name} phản công! -${bs.enemy.atk} HP`;
+  }
+  updateTopbar(); autoSave();
+  const nxt=document.getElementById('nxt-btn');
+  if(bs.enemy.hp<=0) nxt.textContent='🏆 Thắng! →';
+  else if(G.char.hp<=0) nxt.textContent='💔 Tiếp tục...';
+  document.getElementById('nxt').style.display='block';
+}
+
+function battleNext(){
+  const bs=G.battle;
+  if(bs.enemy.hp<=0||G.char.hp<=0){
+    if(bs.enemy.hp<=0){
+      G.exp+=bs.ev.exp||35; G.gold+=bs.ev.gold||25; checkLevelUp(); updateTopbar();
+      if(bs.ev.item){ G.inventory.push({...bs.ev.item}); setTimeout(()=>showPopup(bs.ev.item),500); }
+    } else {
+      G.char.hp=Math.max(5,Math.floor(G.char.maxHp*.2));
+    }
+    G.battle=null; G.evIdx++;
+    setTimeout(()=>startEvent(), bs.ev.item?2600:700);
+  } else {
+    bs.qIdx++;
+    if(bs.qIdx>=bs.ev.qs.length){
+      bs.enemy.hp=Math.max(1,Math.floor(bs.enemy.maxHp*.1));
+      G.exp+=Math.floor((bs.ev.exp||35)*.5); G.gold+=Math.floor((bs.ev.gold||25)*.5);
+      checkLevelUp(); G.battle=null; G.evIdx++; startEvent();
+    } else { renderBattle(bs.ev); }
+  }
+  autoSave();
+}
+
+// ═══════════════════════════════════════
+// LEVEL UP
+// ═══════════════════════════════════════
+function checkLevelUp(){
+  while(G.exp>=G.expNext){
+    G.exp-=G.expNext; G.level++; G.expNext=G.level*100;
+    G.char.maxHp+=15; G.char.hp=Math.min(G.char.hp+15,G.char.maxHp);
+    G.char.atk+=2;
+    notify(`🎉 Lên Cấp! Bây giờ Lv.${G.level}!`);
+  }
+}
+
+// ═══════════════════════════════════════
+// TOPBAR UPDATE
+// ═══════════════════════════════════════
+function updateTopbar(){
+  if(!G) return;
+  const c=G.char;
+  document.getElementById('t-avatar').textContent=c.icon;
+  document.getElementById('t-name').textContent=G.displayName||c.name;
+  document.getElementById('t-level').textContent=`Lv.${G.level} ${c.cls}`;
+  document.getElementById('t-gold').textContent=G.gold;
+  const hp=Math.max(0,(c.hp/c.maxHp)*100);
+  const mp=Math.max(0,(c.mp/c.maxMp)*100);
+  const xp=Math.min(100,(G.exp/G.expNext)*100);
+  document.getElementById('b-hp').style.width=hp+'%';
+  document.getElementById('b-mp').style.width=mp+'%';
+  document.getElementById('b-xp').style.width=xp+'%';
+  document.getElementById('v-hp').textContent=`${c.hp}/${c.maxHp}`;
+  document.getElementById('v-mp').textContent=`${c.mp}/${c.maxMp}`;
+  document.getElementById('v-xp').textContent=`${G.exp}/${G.expNext}`;
+}
+
+// ═══════════════════════════════════════
+// FINISH LOCATION + RESULT
+// ═══════════════════════════════════════
+function finishLoc(){
+  if(!G.locsDone.includes(G.curLoc)) G.locsDone.push(G.curLoc);
+  const oldLoc=G.curLoc;
+  if(G.curLoc<LOCS.length-1) G.curLoc++;
+  // Post score to server
+  if(MODE==='multi'){
+    apiFetch('/api/game/score',{method:'POST',body:JSON.stringify({
+      location_id:oldLoc, location_name:LOCS[oldLoc].name,
+      correct_count:G.correct, wrong_count:G.wrong,
+      exp_earned:G.exp, gold_earned:G.gold
+    })}).catch(()=>{});
+  }
+  autoSave();
+  const loc=LOCS[oldLoc];
+  document.getElementById('res-icon').textContent='🏆';
+  document.getElementById('res-title').textContent=`${loc.name} — Hoàn Thành!`;
+  document.getElementById('res-sub').textContent=`Bạn đã vượt qua tất cả thử thách tại ${loc.name}!`;
+  document.getElementById('res-stats').innerHTML=`
+    <div class="result-stat"><div class="rs-val">✅ ${G.correct}</div><div class="rs-label">Đúng</div></div>
+    <div class="result-stat"><div class="rs-val">❌ ${G.wrong}</div><div class="rs-label">Sai</div></div>
+    <div class="result-stat"><div class="rs-val">⭐ +${G.exp}</div><div class="rs-label">EXP</div></div>
+    <div class="result-stat"><div class="rs-val">💰 ${G.gold}</div><div class="rs-label">Vàng</div></div>
+    <div class="result-stat"><div class="rs-val">Lv.${G.level}</div><div class="rs-label">Cấp</div></div>`;
+  showScreen('s-result');
+}
+
+function continueAfterResult(){ renderMap(); showScreen('s-map'); }
+
+// ═══════════════════════════════════════
+// INVENTORY
+// ═══════════════════════════════════════
+function showInventory(){
+  const c=G.char;
+  document.getElementById('inv-avatar').textContent=c.icon;
+  document.getElementById('inv-name').textContent=G.displayName||c.name;
+  document.getElementById('inv-class').textContent=`Lv.${G.level} ${c.cls}`;
+  document.getElementById('inv-stats').innerHTML=`
+    <div class="cd-stat"><span>❤️ HP</span><span class="cd-stat-val">${c.hp}/${c.maxHp}</span></div>
+    <div class="cd-stat"><span>💧 MP</span><span class="cd-stat-val">${c.mp}/${c.maxMp}</span></div>
+    <div class="cd-stat"><span>🗡️ ATK</span><span class="cd-stat-val">${c.atk}</span></div>
+    <div class="cd-stat"><span>⚡ SPD</span><span class="cd-stat-val">${c.spd}</span></div>`;
+  // Equip slots
+  const slots=[{slot:'weapon',icon:'⚔️',label:'Vũ Khí'},{slot:'armor',icon:'🛡️',label:'Giáp'},{slot:'accessory',icon:'💍',label:'Phụ Kiện'}];
+  document.getElementById('equip-slots').innerHTML=slots.map(s=>{
+    const it=G.equipped[s.slot];
+    return `<div class="equip-slot"><span class="es-icon">${s.icon}</span><div><div class="es-label">${s.label}</div><div>${it?`<span class="es-item">${it.icon} ${it.name}</span>`:`<span class="es-empty">Chưa có</span>`}</div></div></div>`;
+  }).join('');
+  // Inventory list
+  const list=document.getElementById('inv-list');
+  const empty=document.getElementById('inv-empty');
+  list.innerHTML='';
+  if(G.inventory.length===0){ empty.style.display='block'; }
+  else{
+    empty.style.display='none';
+    G.inventory.forEach(it=>{
+      const d=document.createElement('div'); d.className='inv-item';
+      d.innerHTML=`<span class="ii-icon">${it.icon}</span><div><div class="ii-name">${it.name}</div><div class="ii-type">${it.type}</div></div><button class="btn btn-gold" style="font-size:.75rem;padding:.25rem .65rem" onclick="showPopup(${JSON.stringify(it).replace(/"/g,'&quot;')})">Mặc</button>`;
+      list.appendChild(d);
+    });
+  }
+  document.getElementById('inv-count').textContent=G.inventory.length;
+  showScreen('s-inv');
+}
+
+// ═══════════════════════════════════════
+// ITEM POPUP
+// ═══════════════════════════════════════
+function showPopup(item){
+  pendingItem=item;
+  document.getElementById('pp-icon').textContent=item.icon;
+  document.getElementById('pp-name').textContent=item.name;
+  document.getElementById('pp-desc').textContent=item.desc;
+  document.getElementById('pp-stats').innerHTML=Object.entries(item.stats||{}).map(([k,v])=>
+    `<span class="badge badge-green">+${v} ${k.toUpperCase()}</span>`).join('');
+  document.getElementById('item-popup').classList.add('open');
+}
+function closePopup(){ document.getElementById('item-popup').classList.remove('open'); pendingItem=null; }
+function equipFromPopup(){
+  if(!pendingItem) return;
+  doEquip(pendingItem); closePopup();
+}
+function doEquip(item){
+  const slot=item.slot;
+  const old=G.equipped[slot];
+  if(old){ if(old.stats?.atk) G.char.atk-=old.stats.atk; if(old.stats?.hp){G.char.maxHp-=old.stats.hp;G.char.hp=Math.min(G.char.hp,G.char.maxHp);} G.inventory.push(old); }
+  G.equipped[slot]=item;
+  G.inventory=G.inventory.filter(i=>i.name!==item.name);
+  if(item.stats?.atk) G.char.atk+=item.stats.atk;
+  if(item.stats?.hp){G.char.maxHp+=item.stats.hp; G.char.hp=Math.min(G.char.hp+item.stats.hp,G.char.maxHp);}
+  updateTopbar(); autoSave(); notify(`✅ Đã mặc ${item.name}!`);
+}
+
+// ═══════════════════════════════════════
+// LEADERBOARD
+// ═══════════════════════════════════════
+async function showLeaderboard(){ showScreen('s-lb'); loadLeaderboard(); }
+async function loadLeaderboard(){
+  const el=document.getElementById('lb-list');
+  el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted)">⏳ Đang tải...</div>';
+  try{
+    const res=await apiFetch('/api/game/leaderboard');
+    const data=await res.json();
+    const rows=data.leaderboard||[];
+    if(rows.length===0){ el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted)">Chưa có dữ liệu</div>'; return; }
+    const medals=['🥇','🥈','🥉'];
+    el.innerHTML=`
+      <div class="lb-row" style="font-size:.72rem;color:var(--muted);padding:.4rem 1rem">
+        <span>#</span><span>Học Sinh</span><span>Lv</span><span>EXP</span><span>✅</span>
+      </div>
+      ${rows.map((r,i)=>`
+        <div class="lb-row ${i===0?'top1':i===1?'top2':i===2?'top3':''}">
+          <span class="lb-rank">${medals[i]||i+1}</span>
+          <div><div class="lb-name">${r.display_name}</div><div class="lb-class">${r.class_name||''}</div></div>
+          <div class="lb-stat"><div class="lb-stat-val">Lv.${r.level}</div></div>
+          <div class="lb-stat"><div class="lb-stat-val">${r.total_exp}</div><div class="lb-stat-label">EXP</div></div>
+          <div class="lb-stat"><div class="lb-stat-val">${r.total_correct}</div><div class="lb-stat-label">đúng</div></div>
+        </div>`).join('')}`;
+  } catch(e){
+    el.innerHTML='<div style="text-align:center;padding:2rem;color:#FCA5A5">❌ Không tải được dữ liệu</div>';
+  }
+}
+
+// ═══════════════════════════════════════
+// AUTO SAVE
+// ═══════════════════════════════════════
+let saveTimer=null;
+function autoSave(){
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>_doSave(),1200);
+}
+async function _doSave(){
+  if(!G) return;
+  if(MODE==='solo'){
+    const data={...G, charData:{hp:G.char.hp,maxHp:G.char.maxHp,mp:G.char.mp,maxMp:G.char.maxMp,atk:G.char.atk}};
+    try{ localStorage.setItem('realm_solo_save',JSON.stringify(data)); }catch(e){}
+  } else {
+    try{
+      await apiFetch('/api/game/save',{method:'POST',body:JSON.stringify({
+        char_index:G.charIdx, char_hp:G.char.hp, char_max_hp:G.char.maxHp,
+        char_mp:G.char.mp, char_max_mp:G.char.maxMp, char_atk:G.char.atk,
+        level:G.level, exp:G.exp, exp_to_next:G.expNext, gold:G.gold,
+        locations_done:G.locsDone, current_loc:G.curLoc,
+        equipped:G.equipped, inventory:G.inventory
+      })});
+    } catch(e){}
+  }
+}
+
+// ═══════════════════════════════════════
+// LOGOUT / RESET
+// ═══════════════════════════════════════
+function doLogout(){
+  if(!confirm('Thoát khỏi game? Tiến độ đã được lưu.')) return;
+  TOKEN=null; USER=null; G=null; MODE=null; selectedCharIdx=null;
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+  showScreen('s-mode');
+}
+</script>
+</body>
+</html>
